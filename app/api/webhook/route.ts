@@ -1,23 +1,23 @@
 // we listen strip webhook event
-// like payment compterd failed
+// like payment completed failed
 // and handel them
 
 import { stripe } from "@/lib/stripe";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma"; // adjust path as per your project
+import { headers } from "next/headers";
 
-export async function POST(request: NextRequest) {
-  // geting strip raw body
-  const body = await request.text();
-  const signature = request.headers.get("stripe-signature");
-
+export async function POST(req: Request) {
+  const stripeSignature = (await headers()).get("stripe-signature");
+  const body = await req.text();
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
   let event: Stripe.Event;
+
   try {
     event = stripe.webhooks.constructEvent(
       body,
-      signature || "",
+      stripeSignature!,
       webhookSecret
     );
   } catch (error: unknown) {
